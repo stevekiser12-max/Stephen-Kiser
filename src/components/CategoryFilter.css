@@ -22,7 +22,9 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
+  /* min 44px for iOS touch targets */
   padding: 12px 14px;
+  min-height: 56px;
   display: flex;
   align-items: center;
   gap: 8px;

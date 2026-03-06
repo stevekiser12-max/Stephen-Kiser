@@ -17,6 +17,8 @@
   padding: 12px 0 0;
   max-height: 85dvh;
   overflow-y: auto;
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
   animation: slide-up 0.25s ease-out;
 }
 
@@ -72,19 +74,20 @@
 .detail-close {
   background: rgba(255,255,255,0.08);
   color: var(--text-muted);
-  width: 30px;
-  height: 30px;
+  /* 44px touch target for iOS */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  font-size: 14px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .detail-body {
-  padding: 16px;
+  /* Extra bottom padding for iPhone home indicator */
+  padding: 16px 16px calc(16px + var(--sab));
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -198,12 +201,16 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
+  /* 56px height is comfortable for iOS touch */
+  padding: 16px;
+  min-height: 56px;
   border-radius: 14px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
   text-align: center;
+  /* Prevent iOS link callout */
+  -webkit-touch-callout: none;
 }
 
 .detail-action-btn.primary {

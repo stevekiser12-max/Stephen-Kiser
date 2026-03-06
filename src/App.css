@@ -1,5 +1,6 @@
 .app {
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   max-width: 480px;
@@ -8,7 +9,8 @@
 
 .main {
   flex: 1;
-  padding: 16px 16px 100px;
+  /* Bottom padding accounts for iPhone home indicator bar */
+  padding: 16px calc(16px + var(--sar)) calc(100px + var(--sab)) calc(16px + var(--sal));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -37,6 +39,7 @@
 
 .radius-btn {
   padding: 6px 14px;
+  min-height: 44px;
   border-radius: 20px;
   background: var(--bg-card);
   color: var(--text-muted);

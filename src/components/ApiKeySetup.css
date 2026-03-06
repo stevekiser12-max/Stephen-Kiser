@@ -44,10 +44,13 @@
   border-radius: 10px;
   padding: 10px 14px;
   color: var(--text);
-  font-size: 14px;
+  /* 16px minimum to prevent iOS Safari auto-zoom on focus */
+  font-size: 16px;
   font-family: monospace;
   outline: none;
   transition: border-color 0.18s;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .apikey-input:focus {

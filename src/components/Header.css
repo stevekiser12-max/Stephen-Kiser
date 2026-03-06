@@ -1,7 +1,11 @@
 .header {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-bottom: 1px solid var(--border);
-  padding: 20px 16px 16px;
+  /* Push content below notch/Dynamic Island */
+  padding: calc(20px + var(--sat)) 16px 16px;
+  /* Also account for landscape safe areas */
+  padding-left: calc(16px + var(--sal));
+  padding-right: calc(16px + var(--sar));
   position: sticky;
   top: 0;
   z-index: 10;
