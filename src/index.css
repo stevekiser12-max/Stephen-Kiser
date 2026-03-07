@@ -24,6 +24,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
+html, body {
+  height: auto;
+  overflow-y: auto !important;
+  position: static !important;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
