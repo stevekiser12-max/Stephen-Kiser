@@ -32,14 +32,8 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  min-height: 100dvh;
-  /* Fallback for older iOS that doesn't support dvh */
-  min-height: -webkit-fill-available;
   overscroll-behavior: none;
-  /* Prevent rubber-band bounce on body (keep it on scroll containers) */
   overflow: hidden;
-  position: fixed;
-  width: 100%;
 }
 
 #root {
