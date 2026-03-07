@@ -1,6 +1,5 @@
 .app {
   min-height: 100dvh;
-  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   max-width: 480px;
@@ -9,8 +8,7 @@
 
 .main {
   flex: 1;
-  /* Bottom padding accounts for iPhone home indicator bar */
-  padding: 16px calc(16px + var(--sar)) calc(100px + var(--sab)) calc(16px + var(--sal));
+  padding: 16px 16px calc(40px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   gap: 16px;
