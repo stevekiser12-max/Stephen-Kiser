@@ -130,8 +130,16 @@ export async function searchDogFriendlyPlaces(coords, categories, apiKey, radius
     }
   }
 
+  // Filter to selected radius — textSearch ignores radius strictly
+  const radiusMiles = radius / 1609
+  const nearby = allPlaces.filter(p => {
+    const loc = p.geometry?.location
+    if (!loc) return false
+    return distanceMiles(lat, lng, loc.lat, loc.lng) <= radiusMiles
+  })
+
   // Sort: open now first, then by rating
-  return allPlaces.sort((a, b) => {
+  return nearby.sort((a, b) => {
     const aOpen = a.opening_hours?.open_now ? 1 : 0
     const bOpen = b.opening_hours?.open_now ? 1 : 0
     if (bOpen !== aOpen) return bOpen - aOpen
