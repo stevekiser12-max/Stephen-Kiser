@@ -39,3 +39,10 @@
   margin: 3px 0 0;
   letter-spacing: 0.03em;
 }
+
+.header-version {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  margin: 2px 0 0;
+}

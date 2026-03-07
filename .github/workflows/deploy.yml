@@ -21,15 +21,26 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Show build info
+        run: |
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          cat src/components/Header.jsx | grep version
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - run: npm install
+      - run: npm ci
 
       - run: npm run build
+
+      - name: Show built files
+        run: ls -la dist/assets/
 
       - uses: actions/configure-pages@v4
 

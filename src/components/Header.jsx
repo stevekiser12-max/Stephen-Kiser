@@ -8,6 +8,7 @@ export default function Header() {
         <div>
           <h1 className="header-title">Dog Friendly Finder</h1>
           <p className="header-sub">Restaurants · Bars · Parks · Shops · Activities</p>
+          <p className="header-version">v9</p>
         </div>
       </div>
     </header>
