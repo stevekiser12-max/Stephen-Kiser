@@ -24,20 +24,10 @@
   -webkit-font-smoothing: antialiased;
 }
 
-html {
-  /* Fill the full viewport on iOS Safari including under status bar */
-  height: -webkit-fill-available;
-}
-
 body {
   background: var(--bg);
   color: var(--text);
-  overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-}
-
-#root {
-  min-height: 100dvh;
 }
 
 button {
