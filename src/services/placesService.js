@@ -4,69 +4,117 @@ export const CATEGORIES = {
     label: 'Restaurants',
     emoji: '🍽️',
     types: ['restaurant', 'cafe', 'food', 'bakery'],
-    keywords: ['dog friendly', 'pet friendly', 'dogs welcome', 'patio dogs'],
+    keywords: ['dog friendly restaurant', 'pet friendly patio'],
   },
   bar: {
     label: 'Bars & Breweries',
     emoji: '🍺',
     types: ['bar', 'night_club'],
-    keywords: ['dog friendly bar', 'pet friendly bar', 'dog friendly brewery', 'dogs allowed'],
+    keywords: ['dog friendly bar', 'dog friendly brewery'],
   },
   park: {
     label: 'Parks & Outdoors',
     emoji: '🌳',
-    types: ['park', 'campground', 'natural_feature'],
-    keywords: ['dog park', 'dog friendly trail', 'off leash', 'pet friendly park'],
+    types: ['park', 'campground'],
+    keywords: ['dog park', 'off leash dog area'],
   },
   pet_store: {
     label: 'Pet Shops',
     emoji: '🐾',
     types: ['pet_store', 'veterinary_care'],
-    keywords: ['pet store', 'dog grooming', 'pet supply', 'animal hospital'],
+    keywords: ['pet store', 'dog grooming'],
   },
   lodging: {
     label: 'Dog-Friendly Hotels',
     emoji: '🏨',
     types: ['lodging'],
-    keywords: ['pet friendly hotel', 'dog friendly hotel', 'dogs allowed hotel'],
+    keywords: ['pet friendly hotel', 'dog friendly hotel'],
   },
   tourist_attraction: {
     label: 'Things To Do',
     emoji: '🎉',
-    types: ['tourist_attraction', 'amusement_park', 'stadium', 'shopping_mall', 'store'],
-    keywords: ['dog friendly', 'pet friendly', 'dogs welcome'],
+    types: ['tourist_attraction'],
+    keywords: ['dog friendly attraction', 'pet friendly outdoor'],
   },
 }
 
-const CORS_PROXY = 'https://corsproxy.io/?'
+// Singleton Maps API loader — loads script once per page session
+let _mapsApiPromise = null
+
+function loadMapsApi(apiKey) {
+  if (window.google?.maps?.places) return Promise.resolve()
+  if (_mapsApiPromise) return _mapsApiPromise
+  _mapsApiPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places`
+    script.async = true
+    script.onload = resolve
+    script.onerror = () => reject(new Error('Failed to load Google Maps API. Check your API key.'))
+    document.head.appendChild(script)
+  })
+  return _mapsApiPromise
+}
+
+// Singleton PlacesService
+let _service = null
+
+async function getService(apiKey) {
+  await loadMapsApi(apiKey)
+  if (!_service) {
+    const attrDiv = document.createElement('div')
+    document.body.appendChild(attrDiv)
+    _service = new google.maps.places.PlacesService(attrDiv)
+  }
+  return _service
+}
+
+// Normalize JS API LatLng objects to plain {lat, lng}
+function normalizePlaces(places) {
+  return places.map(p => ({
+    ...p,
+    geometry: p.geometry
+      ? {
+          ...p.geometry,
+          location: {
+            lat: typeof p.geometry.location.lat === 'function'
+              ? p.geometry.location.lat()
+              : p.geometry.location.lat,
+            lng: typeof p.geometry.location.lng === 'function'
+              ? p.geometry.location.lng()
+              : p.geometry.location.lng,
+          },
+        }
+      : p.geometry,
+  }))
+}
 
 /**
- * Search dog-friendly places using Google Places Text Search + Nearby Search.
- * Combines results, deduplicates, and sorts by rating.
+ * Search dog-friendly places using Google Maps JS API (no CORS proxy needed).
  */
 export async function searchDogFriendlyPlaces(coords, categories, apiKey, radius = 5000) {
   const { lat, lng } = coords
+
+  // Load the API first so google.maps is available for all calls below
+  await loadMapsApi(apiKey)
+
   const allPlaces = []
   const seen = new Set()
 
-  // For each selected category, run a text search with dog-friendly keywords
   const promises = []
   for (const catKey of categories) {
     const cat = CATEGORIES[catKey]
     if (!cat) continue
-    // Use the first keyword as the main query
-    for (const keyword of cat.keywords.slice(0, 2)) {
+    for (const keyword of cat.keywords) {
       promises.push(
         textSearch(keyword, lat, lng, radius, apiKey)
-          .then(places => places.map(p => ({ ...p, _category: catKey })))
+          .then(places => normalizePlaces(places).map(p => ({ ...p, _category: catKey })))
           .catch(() => [])
       )
     }
-    // Also do a nearby search by type
     for (const type of cat.types.slice(0, 1)) {
       promises.push(
         nearbySearch(lat, lng, radius, type, apiKey)
-          .then(places => places.map(p => ({ ...p, _category: catKey })))
+          .then(places => normalizePlaces(places).map(p => ({ ...p, _category: catKey })))
           .catch(() => [])
       )
     }
@@ -91,26 +139,41 @@ export async function searchDogFriendlyPlaces(coords, categories, apiKey, radius
   })
 }
 
-async function textSearch(query, lat, lng, radius, apiKey) {
-  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&location=${lat},${lng}&radius=${radius}&key=${apiKey}`
-  const res = await fetch(CORS_PROXY + encodeURIComponent(url))
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
-  if (data.status === 'REQUEST_DENIED') throw new Error('API key denied: ' + (data.error_message || ''))
-  return data.results || []
+function textSearch(query, lat, lng, radius, apiKey) {
+  return getService(apiKey).then(service => new Promise((resolve, reject) => {
+    service.textSearch(
+      {
+        query,
+        location: new google.maps.LatLng(lat, lng),
+        radius,
+      },
+      (results, status) => {
+        const S = google.maps.places.PlacesServiceStatus
+        if (status === S.OK) resolve(results)
+        else if (status === S.ZERO_RESULTS) resolve([])
+        else reject(new Error(`Places API: ${status}`))
+      }
+    )
+  }))
 }
 
-async function nearbySearch(lat, lng, radius, type, apiKey) {
-  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&keyword=dog+friendly&key=${apiKey}`
-  const res = await fetch(CORS_PROXY + encodeURIComponent(url))
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
-  if (data.status === 'REQUEST_DENIED') throw new Error('API key denied: ' + (data.error_message || ''))
-  return data.results || []
-}
-
-export function getPhotoUrl(photoRef, apiKey, maxWidth = 400) {
-  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photo_reference=${photoRef}&key=${apiKey}`
+function nearbySearch(lat, lng, radius, type, apiKey) {
+  return getService(apiKey).then(service => new Promise((resolve, reject) => {
+    service.nearbySearch(
+      {
+        location: new google.maps.LatLng(lat, lng),
+        radius,
+        type,
+        keyword: 'dog friendly',
+      },
+      (results, status) => {
+        const S = google.maps.places.PlacesServiceStatus
+        if (status === S.OK) resolve(results)
+        else if (status === S.ZERO_RESULTS) resolve([])
+        else reject(new Error(`Places API: ${status}`))
+      }
+    )
+  }))
 }
 
 export function getDirectionsUrl(place) {
