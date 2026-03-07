@@ -17,7 +17,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [selectedPlace, setSelectedPlace] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
-  const [radius, setRadius] = useLocalStorage('search_radius', 5000)
+  const [radius, setRadius] = useLocalStorage('search_radius', 8047)
 
   const handleSearch = useCallback(async () => {
     if (!apiKey.trim()) {
@@ -67,13 +67,13 @@ export default function App() {
         <div className="radius-row">
           <label className="radius-label">Search radius</label>
           <div className="radius-options">
-            {[1000, 2500, 5000, 10000, 20000].map(r => (
+            {[1609, 4828, 8047, 16093, 32187].map(r => (
               <button
                 key={r}
                 className={`radius-btn ${radius === r ? 'active' : ''}`}
                 onClick={() => setRadius(r)}
               >
-                {r >= 1000 ? `${r / 1000}km` : `${r}m`}
+                {`${Math.round(r / 1609)} mi`}
               </button>
             ))}
           </div>

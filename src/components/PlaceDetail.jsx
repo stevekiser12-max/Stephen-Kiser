@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { CATEGORIES, getDirectionsUrl, distanceKm } from '../services/placesService'
+import { CATEGORIES, getDirectionsUrl, distanceMiles } from '../services/placesService'
 import './PlaceDetail.css'
 
 export default function PlaceDetail({ place, userLocation, onClose }) {
@@ -18,7 +18,7 @@ export default function PlaceDetail({ place, userLocation, onClose }) {
   const { lat, lng } = place.geometry?.location || {}
   let dist = null
   if (userLocation && lat && lng) {
-    dist = distanceKm(userLocation.lat, userLocation.lng, lat, lng)
+    dist = distanceMiles(userLocation.lat, userLocation.lng, lat, lng)
   }
 
   const priceLevel = place.price_level
@@ -49,7 +49,7 @@ export default function PlaceDetail({ place, userLocation, onClose }) {
             {priceDollar && <span className="detail-price">{priceDollar}</span>}
             {dist !== null && (
               <span className="detail-dist">
-                {dist < 1 ? `${Math.round(dist * 1000)}m away` : `${dist.toFixed(1)}km away`}
+                {`${dist.toFixed(1)} mi away`}
               </span>
             )}
           </div>
